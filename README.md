@@ -151,8 +151,8 @@ so if we receive a lot of webhooks related to the same attempt so we know that i
 
 
 - also if the same purchase have an attempt and this attempt receives a 
-lot of webhooks at diffrent times related to the same attempt so we update the purchase related to the last received webhook with the recent timestap in the response but 
-if the succes status comes first then after that failed come so the success status is more important and will change the status of the purchase than the failed one
+lot of webhooks at diffrent times related to the same attempt so we update the purchase related to the last received webhook with the recent timestamp in the response but 
+if the success status comes first then after that failed come to the same attempt so the success status is more important and will change the status of the purchase than the failed one
 
 - each webhook will be represented by a record in the payement_events table to help us for debugging and monitoring the process
 
@@ -161,6 +161,7 @@ if the succes status comes first then after that failed come so the success stat
 - the user press buy button so a request is sent then we receive idempotency and check if  this purchase is exists before or no
 if no so we will make DB:transaction and check availability of service and if is available  lockForUpdate of the service row and then make new purchase and new payment_attempt and make the status of the attempt to pending and also the purchase to pending status
 
-- when webhook comes we will check idempotency of the event_id and then update both the attempt status and purchase status related to this and make also anew payment_event record in payment_events table
+- when webhook comes we will check idempotency of the event_id that comes form response  and then update     purchase status related to this and make also a new payment_event record in payment_events table and also update the payment_attempt record  columns:             last_event_occurred_at , attempt_no , state_version , status
+
  
-- there is a job that scheduled in the background to check if any purchase exceeds the expiry date and have status pending to change status of it to expired 
+- there is a job that scheduled in the background to check if any purchase exceeds the expiry date and have status pending to change status of it to expired and decrement the allocated spots of the service 
