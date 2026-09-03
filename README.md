@@ -1,5 +1,6 @@
 # Limited Availability Service Booking Backend
 
+
 Laravel backend for:
 
 - limited-capacity services
@@ -12,6 +13,18 @@ Laravel backend for:
 - expiration and capacity release
 - admin purchase listing
 - feature tests
+
+
+
+## TO RUN PROJECT
+- composer install
+- php artisan storage:link
+- php artisan key:generate
+- php artisan migrate
+- php artisan serve
+
+
+
 
 
 ## MyFatoorah
