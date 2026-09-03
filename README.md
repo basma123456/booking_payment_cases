@@ -56,7 +56,7 @@ MYFATOORAH_TIMEOUT=30
 PURCHASE_TTL_MINUTES=15
 
 
-The supplied `bootstrap/app.php` is a clean replacement example. If your project already has middleware configuration, merge the alias instead of overwriting your existing setup.
+
 
 ## Routes
 
