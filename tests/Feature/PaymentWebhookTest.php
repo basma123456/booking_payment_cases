@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentAttemptStatus;
 use App\Enums\PurchaseStatus;
 use App\Models\PaymentAttempt;
 use App\Models\Purchase;
@@ -16,7 +17,9 @@ class PaymentWebhookTest extends TestCase
 
     public function test_success_webhook_confirms_purchase_once(): void
     {
-        config(['myfatoorah.webhook_secret' => 'test-secret']);
+        config([
+            'myfatoorah.webhook_secret' => 'test-secret',
+        ]);
 
         $user = User::factory()->create();
 
@@ -45,7 +48,7 @@ class PaymentWebhookTest extends TestCase
             'provider' => 'myfatoorah',
             'provider_invoice_id' => '123',
             'provider_payment_id' => 'pay-123',
-            'status' => 'pending',
+            'status' => PaymentAttemptStatus::PENDING,
         ]);
 
         $payload = [
@@ -68,14 +71,67 @@ class PaymentWebhookTest extends TestCase
             ],
         ];
 
-        $message = 'Invoice.Id=123,Invoice.Status=PAID,Transaction.Status=SUCCESS,Transaction.PaymentId=pay-123,Invoice.ExternalIdentifier=';
-        $signature = base64_encode(hash_hmac('sha256', $message, 'test-secret', true));
+        $message =
+            'Invoice.Id=123,' .
+            'Invoice.Status=PAID,' .
+            'Transaction.Status=SUCCESS,' .
+            'Transaction.PaymentId=pay-123,' .
+            'Invoice.ExternalIdentifier=';
 
+        $signature = base64_encode(
+            hash_hmac(
+                'sha256',
+                $message,
+                'test-secret',
+                true
+            )
+        );
+
+        // First webhook
         $this->postJson('/webhooks/myfatoorah', $payload, [
             'myfatoorah-signature' => $signature,
         ])->assertNoContent();
 
-        $this->assertEquals(PurchaseStatus::CONFIRMED, $purchase->fresh()->status);
-        $this->assertEquals(1, $attempt->fresh()->state_version);
+        // Purchase should be confirmed
+        $this->assertEquals(
+            PurchaseStatus::CONFIRMED,
+            $purchase->fresh()->status
+        );
+
+        // Payment attempt should be successful
+        $this->assertEquals(
+            PaymentAttemptStatus::SUCCESS,
+            $attempt->fresh()->status
+        );
+
+        // State version should increase from 1 to 2
+        $this->assertEquals(
+            2,
+            $attempt->fresh()->state_version
+        );
+
+        // Send the exact same webhook again
+        $this->postJson('/webhooks/myfatoorah', $payload, [
+            'myfatoorah-signature' => $signature,
+        ])->assertNoContent();
+
+        // Purchase must remain confirmed
+        $this->assertEquals(
+            PurchaseStatus::CONFIRMED,
+            $purchase->fresh()->status
+        );
+
+        // Payment attempt must remain successful
+        $this->assertEquals(
+            PaymentAttemptStatus::SUCCESS,
+            $attempt->fresh()->status
+        );
+
+        // Duplicate webhook must NOT increment the version again
+        $this->assertEquals(
+            2,
+            $attempt->fresh()->state_version
+        );
     }
 }
+
