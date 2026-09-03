@@ -162,3 +162,4 @@ if no so we will make DB:transaction and check availability of service and if is
 
 - when webhook comes we will check idempotency of the event_id and then update both the attempt status and purchase status related to this and make also anew payment_event record in payment_events table
  
+- there is a job that scheduled in the background to check if any purchase exceeds the expiry date and have status pending to change status of it to expired 
