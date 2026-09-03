@@ -138,3 +138,27 @@ i think we may make another refunds table and refunds_events table in case of th
   
   also another suggestion we may put rate limiting on the route of purchase to avoid duplicate requests of the same user at the same time
 
+
+
+## IMPORTANT NOTES HERE
+
+i use some ways to prevent problems
+
+- idempotency  in the purchases table and in purchase_attempts and the important one is the idempotency of the payment_events table
+which is the combination of the event_id that is got from the my_fatoorah response and the name of the provider
+so if we receive a lot of webhooks related to the same attempt so we know that is this attempt is exists before and we update this attempt and purchase only related to this webhook
+
+
+- also if the same purchase have an attempt and this attempt receives a 
+lot of webhooks at diffrent times related to the same attempt so we update the purchase related to the last received webhook with the recent timestap in the response but 
+if the succes status comes first then after that failed come so the success status is more important and will change the status of the purchase than the failed one
+
+- each webhook will be represented by a record in the payement_events table to help us for debugging and monitoring the process
+
+- to reduce and prevent racing and concurrency i use DB::transaction   and   lockForUpdate in the model   and idempotency and unique constraints in tables
+
+- the user press buy button so a request is sent then we receive idempotency and check if  this purchase is exists before or no
+if no so we will make DB:transaction and check availability of service and if is available  lockForUpdate of the service row and then make new purchase and new payment_attempt and make the status of the attempt to pending and also the purchase to pending status
+
+- when webhook comes we will check idempotency of the event_id and then update both the attempt status and purchase status related to this and make also anew payment_event record in payment_events table
+ 
