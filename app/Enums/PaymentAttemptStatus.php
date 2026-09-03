@@ -4,7 +4,8 @@ namespace App\Enums;
 
 enum PaymentAttemptStatus: string
 {
-case PENDING = 'pending';
-case SUCCEEDED = 'succeeded';
-case FAILED = 'failed';
+    case PENDING = 'pending';
+    case SUCCESS = 'success';
+    case FAILED = 'failed';
+    case CANCELLED = 'cancelled';
 }
