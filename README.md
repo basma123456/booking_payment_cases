@@ -137,6 +137,7 @@ i think we may make another refunds table and refunds_events table in case of th
   
   
   also another suggestion we may put rate limiting on the route of purchase to avoid duplicate requests of the same user at the same time
+  besides the idempotency that we already pu
 
 
 
